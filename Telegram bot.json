@@ -1,0 +1,665 @@
+{
+  "name": "Telegram bot",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8d4b916c-d38a-455f-a10a-0c8e440bfe67",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1280,
+        160
+      ],
+      "id": "054fbe15-c6a6-47f9-9c36-2f61a694677f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e4145e69-b00c-43dc-bf65-7647a862fbe4",
+              "name": "text",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1100,
+        160
+      ],
+      "id": "6476cdf8-1343-4a27-be6a-de31c091cd10",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=# Role  \nYou are an assistant with access to multiple tools.  \n\n# Behavior  \nYou respond concisely and succinctly in a friendly and approachable style.\n\n# Date and Time: {{ $now }}\n\n# Tools  \nYou have access to multiple tools and always use the appropriate one depending on the task.  \n\n## Gmail_Tool \nUse this tool to every time you need to do something with emails. If you send mails you sign every email with \"Arnie\" and never use empty placeholders for names.  \nEnsure that emails are well-formatted with a proper body.  \n\n## Calendar_Tool  \nUse this tool every time you need to do something with the calendar.\n\n## search_agent\nuse this tool to search the web, hackernews and wikipedia\n\n## x_posts\nUse this tool to post on x"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -880,
+        160
+      ],
+      "id": "d1913cdb-90ce-4094-87f9-70e12748df03",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1160,
+        320
+      ],
+      "id": "f0d8f996-7f02-4579-81d3-9818f0997d5d",
+      "name": "Telegram",
+      "webhookId": "52f4d0ed-5036-4014-bdcd-8ff723ddfb33",
+      "credentials": {
+        "telegramApi": {
+          "id": "V3wIFX4Mx3R45S6R",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1020,
+        320
+      ],
+      "id": "d2e69cec-f5e5-4aca-82ce-a4044aff4623",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "gI5tmXKDhGtTh8Gw",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Switch').item.json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -820,
+        480
+      ],
+      "id": "c16db221-d6d3-4dbf-96f2-af4c2763d094",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Switch').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -280,
+        -20
+      ],
+      "id": "88e1dbf4-24ff-4b8d-8443-9e04d87cdfa6",
+      "name": "Telegram1",
+      "webhookId": "19dc4578-bd30-4424-ba2e-23e9d33a6db7",
+      "credentials": {
+        "telegramApi": {
+          "id": "V3wIFX4Mx3R45S6R",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "search_agent",
+        "description": "use this tool to search the web, hackernews and wikipedia",
+        "workflowId": {
+          "__rl": true,
+          "value": "XZY3JK5ndRdU5mcd",
+          "mode": "list",
+          "cachedResultName": "serp sub-workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        -520,
+        480
+      ],
+      "id": "f70241d9-8e3c-426a-9d50-a4b94df4628b",
+      "name": "search_agent"
+    },
+    {
+      "parameters": {
+        "name": "Calendar_Tool",
+        "description": "use this tool everytime you need to do something in the calender",
+        "workflowId": {
+          "__rl": true,
+          "value": "ERTrjmI4OneAAivX",
+          "mode": "list",
+          "cachedResultName": "Telegram calendar sub-workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        480
+      ],
+      "id": "749c8fe0-bda6-4f82-b7df-a6b4ece4f8ce",
+      "name": "Calendar_Tool"
+    },
+    {
+      "parameters": {
+        "name": "Gmail_Tool",
+        "description": "Use this tool everytime you need to do something with mails",
+        "workflowId": {
+          "__rl": true,
+          "value": "lOVMi5YuUKdUdKGK",
+          "mode": "list",
+          "cachedResultName": "Gmail sub-workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        480
+      ],
+      "id": "5278124a-f88b-4034-b796-d397e63f6ee1",
+      "name": "Gmail_Tool"
+    },
+    {
+      "parameters": {
+        "name": "x_posts",
+        "description": "Use this tool to post on x",
+        "workflowId": {
+          "__rl": true,
+          "value": "M38D9yTUlLrTMKKR",
+          "mode": "list",
+          "cachedResultName": "x_post sub-workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        480
+      ],
+      "id": "e4cf2811-fdad-4553-9b11-50b481875bc3",
+      "name": "x_posts"
+    },
+    {
+      "parameters": {
+        "name": "contact_agent",
+        "description": "use this tool to get contacts and safe new contacts",
+        "workflowId": {
+          "__rl": true,
+          "value": "YM7OUP51Z8fYaofF",
+          "mode": "list",
+          "cachedResultName": "Contact Agent Sub-Workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        480
+      ],
+      "id": "6d2ff7aa-6e68-4df7-b30a-677fedc4d026",
+      "name": "contact_agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are Sally, a funny guy that makes sarcastic comments and funny anekdotes about topics.\nYou try to roast the topics and insult a bit.\nYou answer really short, just 1 punnchy lines.\n\ntopics: {{ $json.output }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        -580,
+        160
+      ],
+      "id": "dcf3211f-ffa7-4cce-97f2-93f35f7b8c41",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -560,
+        0
+      ],
+      "id": "bab35008-8091-4965-b6b5-06f9bc447ce9",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "gI5tmXKDhGtTh8Gw",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAudio",
+        "chatId": "={{ $('Switch').item.json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -140,
+        160
+      ],
+      "id": "b005c8e6-bf93-487d-b418-d3fb3658a7ae",
+      "name": "Telegram2",
+      "webhookId": "a34f46cb-6fd6-4b81-94df-2cc341f3636f",
+      "credentials": {
+        "telegramApi": {
+          "id": "V3wIFX4Mx3R45S6R",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "input": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -280,
+        160
+      ],
+      "id": "551ce230-0cc5-4404-85af-d713c8df3f5b",
+      "name": "Generate audio",
+      "credentials": {
+        "openAiApi": {
+          "id": "gI5tmXKDhGtTh8Gw",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -940,
+        480
+      ],
+      "id": "364a4c83-51e4-4d3c-9386-b79ea5c6a6c9",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "gI5tmXKDhGtTh8Gw",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1520,
+        160
+      ],
+      "id": "93b08a92-6d34-4cce-8524-1a078c980a65",
+      "name": "Telegram Trigger",
+      "webhookId": "d7298b0d-e115-4c6a-a834-40115eacde44",
+      "credentials": {
+        "telegramApi": {
+          "id": "V3wIFX4Mx3R45S6R",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar_Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail_Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "x_posts": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "contact_agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Generate audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate audio": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "79c6668a-7da4-435c-8e8f-b5880c7e079f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a5bd2819fea801e74061eafd3dbe3dc5e5ba22b3ac3b5b6a5cd26014035323b6"
+  },
+  "id": "HalZlbnJyC1BqW0e",
+  "tags": []
+}

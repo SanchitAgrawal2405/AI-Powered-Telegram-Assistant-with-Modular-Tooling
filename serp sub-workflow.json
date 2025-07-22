@@ -1,0 +1,186 @@
+{
+  "name": "serp sub-workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3a1f0b14-fc13-4ee2-9a4d-27c4fc9b9948",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "=You are a helpful research agent.\nYou use your Tools to search the web, you have access to hackernwes, wikipedia and the serpAPI, surch them all or use the rigth one."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        220,
+        0
+      ],
+      "id": "eb0878ca-899a-4aa0-9f26-fbaccf6a7608",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        240
+      ],
+      "id": "3806395f-606e-4dde-a91b-fc075b33ed76",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "gI5tmXKDhGtTh8Gw",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [
+        280,
+        240
+      ],
+      "id": "6d74a9ac-70b6-4b78-be60-06dd5bc098aa",
+      "name": "Wikipedia"
+    },
+    {
+      "parameters": {
+        "resource": "all",
+        "limit": 20,
+        "additionalFields": {
+          "keyword": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Keyword', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.hackerNewsTool",
+      "typeVersion": 1,
+      "position": [
+        420,
+        240
+      ],
+      "id": "05e25edf-baf1-4820-90b5-e55bfddd5557",
+      "name": "Hacker News"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        560,
+        240
+      ],
+      "id": "58a0064e-6448-4714-a712-528fa9d99918",
+      "name": "SerpAPI",
+      "credentials": {
+        "serpApi": {
+          "id": "rEXdkPz9dW19ZHEB",
+          "name": "SerpAPI account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": "Anthropic news"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hacker News": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "5c14278a-d338-40c8-821a-5e636bf0ead8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a5bd2819fea801e74061eafd3dbe3dc5e5ba22b3ac3b5b6a5cd26014035323b6"
+  },
+  "id": "XZY3JK5ndRdU5mcd",
+  "tags": []
+}
